@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.8.6] - 2026-10-26
+
+### Changed
+- README: removed the pinned-version example from the install section; it went stale on every release.
+
 ## [0.8.5] - 2026-10-26
 
 ### Changed
