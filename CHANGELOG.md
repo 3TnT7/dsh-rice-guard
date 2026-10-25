@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.8.5] - 2026-10-26
+
+### Changed
+- README: the install command now appears directly under the title.
+
 ## [0.8.4] - 2026-10-26
 
 ### Changed
