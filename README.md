@@ -125,8 +125,6 @@ dsh plugin add dsh-rice-guard
 - [`dsh-context-lens`](https://github.com/GooDAnDReaDY/dsh-context-lens)（MIT）：
   把内容读取工具化，按需取骨架和聚焦片段。
 
-本插件只动「每次请求都会重发的工具定义」这一层；
-上面这些工具自己的 schema 可以用本插件的完整保留名单兜住。
 设计上参考过以上三家，未复制代码；
 没有测试过与它们的兼容性，也没有评估它们各自的效果。
 
