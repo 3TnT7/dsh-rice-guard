@@ -7,3 +7,4 @@ tasks/
 .probe/
 # Public package policy: design docs contain local paths and session IDs; never publish them.
 docs/
+RELEASE-TODO.md
