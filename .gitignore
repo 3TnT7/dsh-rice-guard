@@ -1,10 +1,6 @@
 node_modules/
 .artifacts/
 *.log
-fetched/
-tasks/
-.work/
-.probe/
-# Public package policy: design docs contain local paths and session IDs; never publish them.
+
+# 公开仓策略：设计文档与内部资料（含本机路径、会话 id）不进仓库，也不进 npm 包。
 docs/
-RELEASE-TODO.md
