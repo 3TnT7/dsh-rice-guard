@@ -2,6 +2,8 @@
 
 让 DeepSeek Harness 每次请求少发一点工具定义，让前缀缓存命中更稳一点。
 
+> 安装：`dsh plugin add dsh-rice-guard`（DSH 从 npm 拉取；装完重启 DSH）
+
 ## 它是什么
 
 `dsh-rice-guard` 是 DeepSeek Harness（DSH）的插件，
