@@ -1,8 +1,8 @@
 {
   "name": "dsh-rice-guard",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "type": "module",
-  "description": "DSH plugin bundle: cache-pipeline (tool schema slimming, explicit tool hiding, deterministic key ordering, per-session config freezing), three-tab panel (stats / config / fine tuning), persisted per-conversation statistics and backed-up tuning archive.",
+  "description": "Deterministic tool-definition slimming for DeepSeek Harness: fewer repeated tokens per request, stabler prefix cache, plus a panel with provider-measured hit rate. · 压缩每次请求重复发送的工具定义，稳定前缀缓存，面板可调并可看实测命中率。",
   "keywords": [
     "dsh",
     "dsh-plugin",

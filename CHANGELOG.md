@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.8.2] - 2026-10-25
+
+### Changed
+- README: added a "相关工具" section that lists three adjacent context tools as design references only (compatibility and their effects were not evaluated).
+- README: renamed "为什么值得装" to "特点" and removed promotional wording.
+- README: clarified that the package is distributed via npm and installed with `dsh plugin add`.
+- package.json: replaced the internal description with a user-facing one.
+
 ## [0.8.1] - 2026-10-25
 
 ### Changed
