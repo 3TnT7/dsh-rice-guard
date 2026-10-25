@@ -1,7 +1,8 @@
 /**
  * 职责：验证官方价表解析、模型映射、峰谷判断、省钱估算与累计 token 账。
  * 依赖的 DSH 契约：无（纯函数 + 内存里的 pipeline 实例）。
- * 关键决策与依据：解析测试用官方页真实快照 `test/fixtures/pricing-cny.html`，不手搓假 HTML。
+ * 关键决策与依据：解析测试用**手工构造的最小夹具** `test/fixtures/pricing-cny.html`——结构仿官方定价页，
+ *   价格数值取自公开价目；不转载第三方页面，同时固定住解析器依赖的结构形状。
  * 已知边界：解析器只认第一张 `<table>`；官方改版时应先跑 `scripts/update-pricing.mjs`。
  */
 import test from 'node:test'
@@ -29,7 +30,7 @@ const near = (actual, expected, message) => {
   assert.ok(Math.abs(actual - expected) < 1e-9, `${message}: ${actual} !== ${expected}`)
 }
 
-test('官方定价页快照：解析出两个模型与完整三组价', () => {
+test('定价页夹具：解析出两个模型与完整三组价', () => {
   const parsed = parsePricingDocument(fixture)
   assert.ok(parsed)
   assert.equal(parsed.currency, 'CNY')
@@ -52,7 +53,7 @@ test('官方定价页快照：解析出两个模型与完整三组价', () => {
   })
 })
 
-test('官方页脚注：峰谷窗口解析为 UTC 01–04、06–10，周一至周五', () => {
+test('页脚脚注：峰谷窗口解析为 UTC 01–04、06–10，周一至周五', () => {
   const pageText = textOf(fixture)
   assert.deepEqual(parsePeakWindow(pageText), { days: [1, 2, 3, 4, 5], hoursUtc: [[1, 4], [6, 10]] })
   const parsed = parsePricingDocument(fixture)
