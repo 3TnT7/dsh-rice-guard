@@ -114,6 +114,21 @@ dsh plugin add dsh-rice-guard
 用自己的会话积累数据，再在同一统计窗口内比较。
 这些数字描述本机样本，不代表每种工具集都会得到相同收益。
 
+## 相关工具
+
+下面三款工具和本插件不在同一层动手，可以同时安装、互不替代：
+
+- [`dsh-context`](https://github.com/bowenliang123/dsh-context)（Apache-2.0）：
+  观测上下文占用与缓存命中，也能给系统提示加前后缀。
+- [`dsh-context-compression-improved`](https://github.com/drscrewdriver/dsh-context-compression-improved)（MIT）：
+  在会话历史上做压缩，替换工具结果的裁剪逻辑。
+- [`dsh-context-lens`](https://github.com/GooDAnDReaDY/dsh-context-lens)（MIT）：
+  把内容读取工具化，按需取骨架和聚焦片段。
+
+本插件只动「每次请求都会重发的工具定义」这一层；
+上面这些工具自己的 schema 可以用本插件的完整保留名单兜住。
+以上三家只作定位参考，未复制代码。
+
 ## 致谢
 
 - [`dsh-cache-saver`](https://github.com/ium9khbep8834-maker/dsh-cache-saver)（MIT）：
