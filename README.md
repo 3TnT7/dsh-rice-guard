@@ -12,7 +12,7 @@
 也能减少无意义的键顺序变化，让前缀缓存更容易复用。
 默认处理 MCP 工具，
 工具执行时仍使用原来的完整定义。
-附带的统计面板把瘦身收益、缓存命中实测和配置放在一起，
+附带的统计面板把精简收益、缓存命中实测和配置放在一起，
 装完就能看变化，不用翻日志。
 
 ## 特点
@@ -49,7 +49,7 @@ dsh plugin add dsh-rice-guard
 装完重启 DSH；面板需要 web profile，本地开发可用 `dsh plugin add link:<本地路径>` 装工作副本。
 
 装好后，在 DSH 左侧栏打开 **Rice Guard**。
-默认启用工具瘦身与键排序，先用默认配置观察即可。
+默认启用工具定义精简与键排序，先用默认配置观察即可。
 
 ## 使用
 
@@ -57,10 +57,10 @@ dsh plugin add dsh-rice-guard
 
 ### 统计
 
-查看今天、最近 7 天或最近 30 天的瘦身收益、
+查看今天、最近 7 天或最近 30 天的精简收益、
 缓存命中实测和按对话汇总的数据。
 
-先看瘦身率，再看实测命中率，
+先看工具定义减少的比例，再看实测命中率，
 就能区分“工具定义少发了多少”和“请求有多少输入命中了缓存”。
 
 统计按对话保存在本地，重启后继续累计。
@@ -70,7 +70,7 @@ dsh plugin add dsh-rice-guard
 ### 配置
 
 切换常用开关或选择预设，
-快速调整瘦身、键排序等行为。
+快速调整精简、键排序等行为。
 
 先保留默认设置，等统计积累后再改。
 改变工具投影的常用开关和预设带二次确认，
@@ -95,7 +95,7 @@ dsh plugin add dsh-rice-guard
 
 | 指标 | 本机样本结果 |
 |---|---|
-| 工具定义瘦身率 | 约 25% |
+| 工具定义精简比例 | 约 25% |
 | 缓存命中率 | 99% 上下 |
 | 工具定义约占真实 prompt | 约 16–22% |
 | 请求失败 | 0 |
@@ -103,7 +103,7 @@ dsh plugin add dsh-rice-guard
 估算按工具投影长度折算 token；实测读取 provider 实报用量，
 缓存命中率来自后者。
 
-瘦身率衡量工具定义本身的减少比例，
+精简比例衡量工具定义本身的减少比例，
 不是整份提示（prompt）的压缩比例。
 工具定义占比只覆盖能与组装统计配对的请求，
 用来观察这部分固定开销在真实输入中的大小。
@@ -132,7 +132,7 @@ dsh plugin add dsh-rice-guard
 ## 致谢
 
 - [`dsh-cache-saver`](https://github.com/ium9khbep8834-maker/dsh-cache-saver)（MIT）：
-  借鉴了描述截断、参数瘦身与 JSON Schema 关键字分类。
+  借鉴了描述截断、参数精简与 JSON Schema 关键字分类。
 - [`dsh-cache-stabilizer`](https://github.com/dongsheng123132/dsh-cache-stabilizer)（MIT）：
   借鉴了对象键排序、长度自检与异常熔断。
 - [`dsh-token-use`](https://github.com/huangyuheng/dsh-token-use)（MIT）：
