@@ -1,6 +1,6 @@
 {
   "name": "dsh-rice-guard",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "type": "module",
   "description": "Deterministic tool-definition slimming for DeepSeek Harness: fewer repeated tokens per request, stabler prefix cache, plus a panel with provider-measured hit rate. · 压缩每次请求重复发送的工具定义，稳定前缀缓存，面板可调并可看实测命中率。",
   "keywords": [
