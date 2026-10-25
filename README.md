@@ -47,7 +47,6 @@
 dsh plugin add dsh-rice-guard
 ```
 
-也可以锁定版本：`dsh plugin add dsh-rice-guard@0.8.4`。
 装完重启 DSH；面板需要 web profile，本地开发可用 `dsh plugin add link:<本地路径>` 装工作副本。
 
 装好后，在 DSH 左侧栏打开 **Rice Guard**。
