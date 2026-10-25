@@ -1,0 +1,5 @@
+# dsh-rice-guard bundle patch.
+# Insert the cache-pipeline module into the Host composition.
+- insert:
+    - id: cache-pipeline
+      name: dsh-rice-guard

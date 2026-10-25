@@ -1,0 +1,64 @@
+{
+  "name": "dsh-rice-guard",
+  "version": "0.8.0",
+  "type": "module",
+  "description": "DSH plugin bundle: cache-pipeline (tool schema slimming, explicit tool hiding, deterministic key ordering, per-session config freezing), three-tab panel (stats / config / fine tuning), persisted per-conversation statistics and backed-up tuning archive.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "prompt-cache",
+    "tool-schema",
+    "token-savings",
+    "context-window",
+    "cache-pipeline",
+    "provider-usage"
+  ],
+  "license": "MIT",
+  "author": "3TnT7",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3TnT7/dsh-rice-guard.git"
+  },
+  "homepage": "https://github.com/3TnT7/dsh-rice-guard#readme",
+  "bugs": {
+    "url": "https://github.com/3TnT7/dsh-rice-guard/issues"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./cache-pipeline": "./src/cache-pipeline.js",
+    "./client": "./src/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test --test-isolation=none \"test/*.test.mjs\""
+  },
+  "files": [
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "NOTICE.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.1-rc.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

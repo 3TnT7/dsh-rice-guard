@@ -1,0 +1,9 @@
+node_modules/
+.artifacts/
+*.log
+fetched/
+tasks/
+.work/
+.probe/
+# Public package policy: design docs contain local paths and session IDs; never publish them.
+docs/
