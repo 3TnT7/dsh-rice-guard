@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.8.1] - 2026-10-25
+
+### Changed
+- Rewrote README for public consumption: focused on what the plugin does, how it works, installation and usage; removed internal design notes, endpoint tables and limitation lists.
+
 ## [0.8.0] - 2026-10-25
 
 ### Added

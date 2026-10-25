@@ -1,6 +1,6 @@
 {
   "name": "dsh-rice-guard",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "type": "module",
   "description": "DSH plugin bundle: cache-pipeline (tool schema slimming, explicit tool hiding, deterministic key ordering, per-session config freezing), three-tab panel (stats / config / fine tuning), persisted per-conversation statistics and backed-up tuning archive.",
   "keywords": [
