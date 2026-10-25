@@ -31,7 +31,7 @@ export function auditConfig(config) {
   const storage = config.storage || {}
 
   if (truncation.enabled && Array.isArray(truncation.shadowPrefixes) && truncation.shadowPrefixes.length === 0) {
-    warnings.push('瘦身前缀为空：等于「处理全部工具」，会把 core 工具定义也瘦身，务必先 dryRun 验证。')
+    warnings.push('精简前缀为空：等于「处理全部工具」，会把 core 工具定义也精简，务必先 dryRun 验证。')
   }
   if (
     truncation.enabled &&
@@ -39,7 +39,7 @@ export function auditConfig(config) {
     typeof truncation.minSchemaChars === 'number' &&
     truncation.maxSchemaChars < truncation.minSchemaChars
   ) {
-    warnings.push('瘦身目标上限（maxSchemaChars）低于生效门槛（minSchemaChars）：大多数 schema 不会被瘦身。')
+    warnings.push('精简目标上限（maxSchemaChars）低于生效门槛（minSchemaChars）：大多数 schema 不会被精简。')
   }
   const hideListEmpty =
     (Array.isArray(visibility.exact) ? visibility.exact.length : 0) === 0 &&

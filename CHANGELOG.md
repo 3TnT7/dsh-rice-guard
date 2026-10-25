@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.8.3] - 2026-10-25
+
+### Changed
+- Panel, tuning metadata and audit warnings now say "精简" instead of "瘦身"; README follows the same wording.
+- No behavior change.
+
 ## [0.8.2] - 2026-10-25
 
 ### Changed

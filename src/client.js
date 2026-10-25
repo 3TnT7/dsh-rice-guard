@@ -394,7 +394,7 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 				h("div", { className: "rg-actions", "aria-label": "统计窗口" }, Object.entries(windowLabels).map(([key, label]) => h("button", { key, className: "rg-btn", type: "button", "aria-pressed": windowKey === key, disabled: busy, onClick: () => { if (key !== windowKey) setData((previous) => ({ ...previous, conversations: [] })); setWindowKey(key); } }, label))),
 				!hasWindow && !statsLoading ? h("p", { className: "rg-muted" }, "当前宿主未提供窗口统计；不以进程累计值冒充所选窗口。") : null,
 				h("div", { className: "rg-cards" },
-					h(Card, { label: "瘦身率 · 所选窗口", value: formatPercent(byteRatio), note: `字节口径；token ${formatPercent(tokenRatio)}` }),
+					h(Card, { label: "精简比例 · 所选窗口", value: formatPercent(byteRatio), note: `字节口径；token ${formatPercent(tokenRatio)}` }),
 					h(Card, { label: "实测命中率", value: hasUsage ? formatPercent(usageHitRate) : "—", note: hasUsage ? `全量 ${formatPercent(usage.hitRate)} · 零命中 ${formatNumber(usage.zeroHitCalls)} 次` : "宿主未提供 usage" }),
 					h(Card, { label: "字节减少", value: formatBytes(selected.bytesSaved), note: `省 ${formatPercent(byteRatio)}（${formatBytes(selected.bytesBefore)} → ${formatBytes(selected.bytesAfter)}）` }),
 					h(Card, { label: "token 减少", value: formatNumber(selected.tokensSaved), note: `省 ${formatPercent(tokenRatio)}` }),
@@ -413,17 +413,17 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 					h("p", { className: "rg-muted" }, "实测口径来自 provider usage；估价按实测命中结构折算，仍不是账单。")),
 				h("section", null, h("h2", { className: "rg-section-title" }, "压缩效率"),
 					h("div", { className: "rg-rows" },
-						h(Row, { label: "窗口字节瘦身率", value: formatPercent(byteRatio) }),
-						h(Row, { label: "窗口 token 瘦身率", value: formatPercent(tokenRatio) }),
+						h(Row, { label: "窗口字节精简比例", value: formatPercent(byteRatio) }),
+						h(Row, { label: "窗口 token 精简比例", value: formatPercent(tokenRatio) }),
 						h(Row, { label: "每请求平均省 token", value: typeof avgTokensPerRequest === "number" ? `${formatNumber(Math.round(avgTokensPerRequest))} token` : "—" }),
-						h(Row, { label: "累计瘦身率（本进程）", value: formatPercent(ratioOf(data.tokensBeforeTotal, data.tokensAfterTotal)) }),
+						h(Row, { label: "累计精简比例（本进程）", value: formatPercent(ratioOf(data.tokensBeforeTotal, data.tokensAfterTotal)) }),
 						h(Row, { label: "工具命中率（本进程累计）", value: formatPercent(data.toolsSeen > 0 ? data.shadowedTotal / data.toolsSeen : undefined) }))),
 				h("section", null, h("h2", { className: "rg-section-title" }, "省钱估算 · 所选窗口"),
 					h("div", { className: "rg-rows" }, [["谷时 · 缓存命中", "off", "hit"], ["谷时 · 缓存未命中", "off", "miss"], ["峰时 · 缓存命中", "peak", "hit"], ["峰时 · 缓存未命中", "peak", "miss"]].map(([label, tier, kind]) => h(Row, { key: label, label, value: formatMoney(money(selected.tokensSaved, tier, kind)) }))),
 					h("p", { className: "rg-muted" }, pricing.status === "priced" ? `价表：${formatText(pricing.label)} · ${formatText(pricing.asOf)}${pricing.override === true ? "（配置覆盖）" : ""}；仅预估，非账单。` : `未定价或价表缺失：${formatText(pricing.model)}；仅显示 token 口径。`)),
 				h("section", null, h("h2", { className: "rg-section-title" }, windowKey === "today" ? "今天按对话" : `近 ${windowKey === "d7" ? 7 : 30} 天按对话`),
 					h("div", { className: "rg-scroll", tabIndex: 0, "aria-label": "对话统计，可滚动" }, h("table", { className: "rg-table" },
-						h("thead", null, h("tr", null, ["短 id", "首次活动", "最后活动", "请求数", "省 token", "瘦身率", ...(hasConversationUsage ? ["命中率"] : []), "省字节"].map((label) => h("th", { key: label, scope: "col" }, label)))),
+						h("thead", null, h("tr", null, ["短 id", "首次活动", "最后活动", "请求数", "省 token", "精简比例", ...(hasConversationUsage ? ["命中率"] : []), "省字节"].map((label) => h("th", { key: label, scope: "col" }, label)))),
 						h("tbody", null, list(data.conversations).slice(0, 20).map((conversation, index) => {
 							const item = asObject(conversation);
 							const itemRatio = typeof item.bytesBefore === "number" && item.bytesBefore > 0 && typeof item.bytesSaved === "number"
@@ -435,9 +435,9 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 					h("div", { className: "rg-rows" },
 						h(Row, { label: "本次 token（前 → 后）", value: `${formatNumber(data.tokensBefore)} → ${formatNumber(data.tokensAfter)}` }),
 						h(Row, { label: "本次 / 累计减少 token", value: `${formatNumber(data.tokensSaved)} / ${formatNumber(data.tokensSavedTotal)}` }),
-						h(Row, { label: "本次 / 累计瘦身率", value: `${formatPercent(ratioOf(data.tokensBefore, data.tokensAfter))} / ${formatPercent(ratioOf(data.tokensBeforeTotal, data.tokensAfterTotal))}` }),
+						h(Row, { label: "本次 / 累计精简比例", value: `${formatPercent(ratioOf(data.tokensBefore, data.tokensAfter))} / ${formatPercent(ratioOf(data.tokensBeforeTotal, data.tokensAfterTotal))}` }),
 						h(Row, { label: "本次字节减少 / 消隐字节", value: `${formatBytes(data.bytesSaved)} / ${formatBytes(data.hiddenBytes)}` }),
-						h(Row, { label: "瘦身试算（工具 / 字节）", value: `${formatNumber(data.wouldShadow)} / ${formatBytes(data.wouldSaveBytes)}` }),
+						h(Row, { label: "精简试算（工具 / 字节）", value: `${formatNumber(data.wouldShadow)} / ${formatBytes(data.wouldSaveBytes)}` }),
 						h(Row, { label: "消隐试算（工具 / 字节）", value: `${formatNumber(data.wouldHide)} / ${formatBytes(data.wouldHideBytes)}` }),
 						[["看到工具（累计）", "toolsSeen"], ["因前缀跳过", "skippedByPrefix"], ["因 keepFull 跳过", "skippedByKeepFull"], ["因体积跳过", "skippedBySize"], ["压缩节点", "collapsedNodesLast"], ["保留 enum", "enumsKept"], ["保留 items", "itemsKept"], ["语义优先超预算（累计）", "oversizeSlimsTotal"], ["排序回退（累计）", "canonicalFallbacks"], ["失败", "failed"]].map(([label, key]) => h(Row, { key, label, value: formatNumber(data[key]) })),
 						h(Row, { label: "最近错误", value: formatText(data.lastError) }))),
@@ -445,7 +445,7 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 				h("p", { className: "rg-muted" }, `每 5 秒刷新；token 按 4 字符估算、不是账单；按 ${data.timezone || "宿主未提供"} 时区切日；统计存档在 ${asObject(data.storage).dir || "宿主未提供"}。字节 ≠ token ≠ 钱；不可与其它插件数字相加。`));
 			const configPage = () => h("div", { className: "rg-stack" },
 				dirty ? h("p", { className: "rg-confirm" }, "精调尚有未保存改动，请先保存或放弃，再使用运行期开关。") : null,
-				h("div", { className: "rg-rows" }, switchControl("truncation", "enabled", "MCP 工具截断", "关掉后不瘦身工具定义"), switchControl("truncation", "dryRun", "瘦身 dryRun", "只试算，不应用瘦身"), switchControl("ordering", "enabled", "确定性键排序", "只对对象键排序，不改工具列表顺序"), switchControl("visibility", "enabled", "工具消隐", "仅使用已配置的显式名单；keepFull 优先"), switchControl("visibility", "dryRun", "消隐 dryRun", "只试算，不移除工具投影")),
+				h("div", { className: "rg-rows" }, switchControl("truncation", "enabled", "MCP 工具截断", "关掉后不精简工具定义"), switchControl("truncation", "dryRun", "精简 dryRun", "只试算，不应用精简"), switchControl("ordering", "enabled", "确定性键排序", "只对对象键排序，不改工具列表顺序"), switchControl("visibility", "enabled", "工具消隐", "仅使用已配置的显式名单；keepFull 优先"), switchControl("visibility", "dryRun", "消隐 dryRun", "只试算，不移除工具投影")),
 				h("h2", { className: "rg-section-title" }, "快捷预设 · 新会话生效"),
 				h("div", { className: "rg-actions" }, preset("preset-cache", "缓存优先", false), preset("preset-traffic", "省流优先", true)),
 				h("p", { className: "rg-muted" }, "preset 只切已有的截断与排序开关；不改 visibility 名单。"),
@@ -479,7 +479,7 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 					h("p", { className: "rg-muted" }, "恢复前请先保存或放弃改动；恢复也会备份当前配置。写入精调存档，重启后仍在；按会话冻结，新会话生效。"));
 			};
 			return h("div", { className: "rg-panel" },
-				h("div", { className: "rg-head" }, h("div", null, h("h1", { className: "rg-title" }, "Rice Guard"), h("p", { className: "rg-sub" }, "工具投影：显式消隐、瘦身与确定性键排序")),
+				h("div", { className: "rg-head" }, h("div", null, h("h1", { className: "rg-title" }, "Rice Guard"), h("p", { className: "rg-sub" }, "工具投影：显式消隐、精简与确定性键排序")),
 					h("button", { className: "rg-btn", type: "button", disabled: busy, onClick: () => { clearPending(); if (tab === "stats") void loadStats(); else if (tab === "config") { void loadStats(); void loadTuning(); } else void loadTuning(); } }, busy ? "请求中…" : "刷新")),
 				h("div", { className: "rg-muted", role: "status" }, `存储：${storage.enabled === true ? "已落盘" : storage.enabled === false ? "未落盘，重启丢失" : "状态未知"} · ${dir || "目录未提供"}${storage.error ? `\n错误：${display(storage.error)}` : ""}`),
 				storage.enabled === false ? h("div", { className: "rg-confirm", role: "alert" }, "未落盘，重启丢失") : null,
@@ -490,7 +490,7 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 				notice ? h("div", { className: "rg-notice", role: "status" }, notice) : null,
 				h("div", { id: "rg-tabpanel", role: "tabpanel", "aria-labelledby": `rg-tab-${tab}`, className: "rg-stack" }, tab === "stats" ? statsPage() : tab === "config" ? configPage() : tuningPage()));
 		}
-		const zh = { panel: "Rice Guard", description: "工具投影消隐、瘦身与排序" };
+		const zh = { panel: "Rice Guard", description: "工具投影消隐、精简与排序" };
 		const en = zh;
 		const inject = ["slots", "locale"];
 		function apply(ctx) {

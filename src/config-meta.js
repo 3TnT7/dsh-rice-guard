@@ -1,7 +1,7 @@
 import { DEFAULTS } from './config.js'
 
 export const CONFIG_GROUPS = Object.freeze([
-  { id: 'truncation', label: '工具瘦身', summary: '控制发给模型的工具定义如何压缩，可能影响前缀缓存。' },
+  { id: 'truncation', label: '工具定义精简', summary: '控制发给模型的工具定义如何压缩，可能影响前缀缓存。' },
   { id: 'visibility', label: '工具消隐', summary: '按名单从模型可见工具中隐藏指定工具。' },
   { id: 'ordering', label: '键排序', summary: '稳定工具参数对象的键顺序，减少无意义变动。' },
   { id: 'freeze', label: '会话冻结', summary: '决定投影类设置是否在会话开始时固定。' },
@@ -12,11 +12,11 @@ export const CONFIG_GROUPS = Object.freeze([
 
 const definitions = [
   // path, kind, label, summary, impact, recommended, risk, timing, extras
-  ['truncation.enabled','boolean','启用工具瘦身','是否压缩命中工具的说明和参数定义。','开启会缩短发送给模型的工具定义、节省上下文；代价是细节可能被删，关闭则保留原文。','开启；遇到工具参数理解异常时可关闭。','medium','new-session'],
-  ['truncation.shadowPrefixes','stringList','处理工具前缀','只处理名称以这些前缀开头的工具。','开启瘦身时匹配这些前缀的工具会被处理；空列表代表全部工具，可能误伤核心工具并改变前缀缓存。','保留默认 mcp__；不要设为空，除非确认要处理全部工具。','high','new-session',{maxEntries:256,placeholder:'例如 mcp__'}],
-  ['truncation.keepFull','stringList','完整保留名单','名单中的工具即使命中前缀也不瘦身。','名单匹配优先于瘦身；增加项目会保住完整定义但增加上下文占用，减少项目则可能让工具定义被压缩。','把依赖完整参数说明的工具名加入；最多 256 项。','medium','new-session',{maxEntries:256,placeholder:'精确工具名'}],
-  ['truncation.minSchemaChars','number','最小参数长度','短于此字符数的参数定义不做瘦身。','调高会让更多小型定义保持原样、保真但省 token 较少；调低则扩大瘦身范围。','700–800 字符。','low','new-session',{unit:'字符',min:0,max:1000000,step:1}],
-  ['truncation.maxSchemaChars','number','参数目标上限','瘦身后参数定义的目标字符上限。','调低更省上下文但更容易丢参数细节；调高较保真但节省较少，定义变化会影响前缀缓存。','800 字符。','medium','new-session',{unit:'字符',min:200,max:1000000,step:1}],
+  ['truncation.enabled','boolean','启用工具定义精简','是否压缩命中工具的说明和参数定义。','开启会缩短发送给模型的工具定义、节省上下文；代价是细节可能被删，关闭则保留原文。','开启；遇到工具参数理解异常时可关闭。','medium','new-session'],
+  ['truncation.shadowPrefixes','stringList','处理工具前缀','只处理名称以这些前缀开头的工具。','开启精简时匹配这些前缀的工具会被处理；空列表代表全部工具，可能误伤核心工具并改变前缀缓存。','保留默认 mcp__；不要设为空，除非确认要处理全部工具。','high','new-session',{maxEntries:256,placeholder:'例如 mcp__'}],
+  ['truncation.keepFull','stringList','完整保留名单','名单中的工具即使命中前缀也不精简。','名单匹配优先于精简；增加项目会保住完整定义但增加上下文占用，减少项目则可能让工具定义被压缩。','把依赖完整参数说明的工具名加入；最多 256 项。','medium','new-session',{maxEntries:256,placeholder:'精确工具名'}],
+  ['truncation.minSchemaChars','number','最小参数长度','短于此字符数的参数定义不做精简。','调高会让更多小型定义保持原样、保真但省 token 较少；调低则扩大精简范围。','700–800 字符。','low','new-session',{unit:'字符',min:0,max:1000000,step:1}],
+  ['truncation.maxSchemaChars','number','参数目标上限','精简后参数定义的目标字符上限。','调低更省上下文但更容易丢参数细节；调高较保真但节省较少，定义变化会影响前缀缓存。','800 字符。','medium','new-session',{unit:'字符',min:200,max:1000000,step:1}],
   ['truncation.maxDepth','number','参数保留层级','参数对象最多保留的嵌套层级。','调低压缩更强但深层参数可能坍缩；调高保留结构但占用更多上下文。','3 层。','medium','new-session',{unit:'层',min:0,max:6,step:1}],
   ['truncation.topDescriptionChars','number','顶层说明上限','限制参数顶层说明的字符数。','调低更省上下文但说明更易被截断；调高更完整但节省较少。','140 字符。','low','new-session',{unit:'字符',min:0,max:4000,step:1}],
   ['truncation.nestedDescriptionChars','number','嵌套说明上限','限制嵌套参数说明的字符数。','调低更省上下文但子参数说明更易丢失；调高更保真但占用增加。','60 字符。','low','new-session',{unit:'字符',min:0,max:4000,step:1}],
@@ -25,11 +25,11 @@ const definitions = [
   ['truncation.maxBranches','number','联合分支上限','启用联合类型截断时最多保留的分支数。','仅 truncateUnions 开启时生效；调低可能删掉有效参数形态，调高则保留更多内容。','4 个；仅在明确需要时开启联合分支截断。','high','new-session',{unit:'个',min:1,max:64,step:1}],
   ['truncation.truncateUnions','boolean','截断联合类型','是否截短 oneOf、anyOf、allOf 的分支。','开启可进一步缩短定义，但模型可能看不到可用参数分支；关闭保留全部分支、占用略多。','关闭，避免遗漏有效参数形式。','high','new-session'],
   ['truncation.dropAnnotations','boolean','删除编辑注解','是否丢弃 examples、title、$comment 等注解。','开启会移除编辑期注解以节省上下文，代价是模型也看不到这些示例和提示；关闭则保留。','开启；若注解对工具使用有帮助再关闭。','medium','new-session'],
-  ['truncation.dryRun','boolean','瘦身试运行','只计算瘦身结果但不替换原始工具定义。','开启可观察统计而不改变模型看到的定义；仍会计算，不能节省上下文。','排查效果时开启，确认后关闭以实际瘦身。','low','new-session'],
+  ['truncation.dryRun','boolean','精简试运行','只计算精简结果但不替换原始工具定义。','开启可观察统计而不改变模型看到的定义；仍会计算，不能节省上下文。','排查效果时开启，确认后关闭以实际精简。','low','new-session'],
   ['visibility.enabled','boolean','启用工具消隐','是否按精确名单或前缀隐藏工具。','开启后命中名单的工具不再展示给模型，可能阻断其调用；关闭时名单仍保存但不起作用。','默认关闭；确认工具不应被模型调用时再开启。','high','new-session'],
   ['visibility.dryRun','boolean','消隐试运行','只统计命中项而不隐藏工具。','开启只观察命中情况、不改变模型可见工具；因此不会减少上下文。','配置名单时先开启核对，确认后关闭。','low','new-session'],
   ['visibility.exact','stringList','精确隐藏名单','按完整工具名匹配要隐藏的工具。','启用消隐后，名单中的工具会隐藏；改错名称只会空转，列错名称则可能让模型失去工具。','只列出确认不应提供给模型的准确名称。','high','new-session',{maxEntries:256,placeholder:'精确工具名'}],
-  ['visibility.prefixes','stringList','隐藏名称前缀','隐藏名称以这些前缀开头的工具。','启用消隐后匹配前缀的工具会隐藏；空列表表示不按前缀消隐，与瘦身前缀列表语义相反。','默认空列表；仅填写范围明确的前缀。','high','new-session',{maxEntries:256,placeholder:'例如 mcp__server__'}],
+  ['visibility.prefixes','stringList','隐藏名称前缀','隐藏名称以这些前缀开头的工具。','启用消隐后匹配前缀的工具会隐藏；空列表表示不按前缀消隐，与精简前缀列表语义相反。','默认空列表；仅填写范围明确的前缀。','high','new-session',{maxEntries:256,placeholder:'例如 mcp__server__'}],
   ['ordering.enabled','boolean','启用键排序','是否对工具参数对象递归排序键。','开启可让键顺序稳定、减少无意义差异；会增加少量处理且可能影响前缀缓存，关闭则保留原顺序。','开启。','low','new-session'],
   ['ordering.maxDepth','number','排序递归深度','键排序最多递归的层级，超出部分原样返回。','调高可排序更深对象但处理更多；调低更快但深层键顺序可能不稳定。','64 层。','low','new-session',{unit:'层',min:0,max:512,step:1}],
   ['ordering.verify','enum','排序校验方式','选择是否检查排序前后的长度一致。','length 会做长度自检并在异常时保护原值；none 少一次校验但失去这层防护。','length。','medium','new-session',{options:['length','none']}],
