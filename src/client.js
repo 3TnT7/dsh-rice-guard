@@ -1,4 +1,9 @@
-// 配置按会话冻结，面板不能暗示开关会改写当前会话的前缀。
+/**
+ * 职责：注册统计、配置和精调面板，管理草稿及保存反馈。
+ * 依赖的 DSH 契约：ModuleLoader 提供 React，slots/locale 注册面板；接口报告 saved/persisted/error。
+ * 关键决策与依据：HTTP 成功不代表落盘；明确写盘失败保留草稿及编辑基线，只在真正成功后清空。
+ * 已知边界：配置按会话冻结，面板不能暗示开关会改写当前会话前缀；未报告落盘字段的旧宿主沿用 HTTP 结果。
+ */
 const STATS_PATH = "/api/rice-guard/stats";
 const CONFIG_PATH = "/api/rice-guard/config";
 const TUNING_PATH = "/api/rice-guard/tuning";
@@ -311,6 +316,9 @@ textarea.rg-input{min-height:100px;resize:vertical;font-family:monospace;white-s
 				try {
 					const body = await request(url, payload);
 					if (!alive.current) return;
+					if (body.saved === false || body.persisted === false || body.error != null) {
+						throw new Error(body.error != null ? display(body.error) : "未能写入存档；草稿已保留，重启可能丢失本次改动");
+					}
 					if (isConfig) setData((previous) => ({ ...previous, config: body.config || previous.config }));
 					else { setTuning(body); setDraft({}); dirtyRef.current = false; }
 					setNotice(`已保存${body.backupId ? `；备份 ${body.backupId}` : ""}${list(body.warnings).length ? `\n警告：${body.warnings.map(display).join("；")}` : ""}`);

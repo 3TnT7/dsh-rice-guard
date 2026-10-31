@@ -34,9 +34,9 @@
  *   - usage 通道的 `first` 标记依赖进程内记忆：重启后每个活跃会话的第一条会被
  *     再标一次「首条」，稳态命中率因此少算一条（偏保守，不会虚高）。
  *   - 同一进程内切换存档目录不支持：目录在 `configure` 首次调用后固定。
- *   - 文件损坏行只计数并跳过，不做自动修复。
+ *   - 追加前只读末字节，缺换行则补齐，隔离中断尾行；损坏行仍只计数并跳过，不修复内容。
  */
-import { closeSync, mkdirSync, openSync, readdirSync, readFileSync, statSync, writeSync } from 'node:fs'
+import { closeSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, statSync, writeSync } from 'node:fs'
 import { join } from 'node:path'
 
 /** 内存保留天数：30 天窗口 + 一个月的边界余量。 */
@@ -455,11 +455,17 @@ export function createStatsStore(options = {}) {
   function appendLine(line) {
     try {
       const month = monthKey(line.ts)
+      const file = join(dir, 'stats', `${month}.jsonl`)
       if (fd === null || fdMonth !== month) {
         closeFd()
         mkdirSync(join(dir, 'stats'), { recursive: true })
-        fd = openSync(join(dir, 'stats', `${month}.jsonl`), 'a')
+        fd = openSync(file, 'a+')
         fdMonth = month
+      }
+      const size = statSync(file).size
+      if (size > 0) {
+        const tail = Buffer.alloc(1)
+        if (readSync(fd, tail, 0, 1, size - 1) === 1 && tail[0] !== 10) writeSync(fd, '\n')
       }
       writeSync(fd, `${JSON.stringify(line)}\n`)
       error = null

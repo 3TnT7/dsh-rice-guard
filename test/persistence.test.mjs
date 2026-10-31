@@ -1,4 +1,11 @@
+/**
+ * 职责：验证统计、精调存档及面板保存反馈的公开行为。
+ * 依赖的 DSH 契约：目录可注入；面板通过 ModuleLoader 和 slots 注册，HTTP 返回落盘状态。
+ * 关键决策与依据：真实临时文件验证重载；轻量 React 宿主驱动面板事件，不暴露内部函数。
+ * 已知边界：不覆盖浏览器布局、跨进程并发和掉电一致性。
+ */
 import test from 'node:test'
+import { runInNewContext } from 'node:vm'
 import assert from 'node:assert/strict'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -148,6 +155,30 @@ test('stats-store: a 30-day window crossing two month boundaries reads all month
   second.close()
 })
 
+test('stats-store: append separates an unterminated tail and preserves valid records', () => {
+  for (const partial of [true, false]) {
+    const dir = tempDir()
+    const first = createStatsStore({ dir, now: () => ANCHOR })
+    first.configure(normalizeConfig({}))
+    first.record(recordOf(at(0), 'session-old'))
+    first.close()
+    const file = join(dir, 'stats', '2026-10.jsonl')
+    const valid = readFileSync(file, 'utf8')
+    writeFileSync(file, partial ? `${valid}{"v":2,"ts":` : valid.trimEnd(), 'utf8')
+
+    const writer = createStatsStore({ dir, now: () => ANCHOR })
+    writer.configure(normalizeConfig({}))
+    writer.record(recordOf(at(0, 14), 'session-new'))
+    writer.close()
+    const reloaded = createStatsStore({ dir, now: () => ANCHOR })
+    reloaded.configure(normalizeConfig({}))
+    assert.equal(reloaded.info().recordsLoaded, 2)
+    assert.equal(reloaded.info().corruptLines, partial ? 1 : 0)
+    assert.deepEqual(reloaded.conversations('today').map((row) => row.sessionId), ['session-new', 'session-old'])
+    reloaded.close()
+  }
+})
+
 test('stats-store: corrupt lines are skipped and disabled mode writes nothing', () => {
   const dir = tempDir()
   const first = createStatsStore({ dir, now: () => ANCHOR })
@@ -238,6 +269,19 @@ test('config-store: error semantics for bad archives and ids', () => {
   assert.equal(store.restoreBackup('20260101-000000-zzzz').error, 'invalid backup id')
 })
 
+test('config-store: first save creates a missing directory with maxBackups zero', () => {
+  const dir = join(tempDir(), 'missing', 'store')
+  assert.equal(existsSync(dir), false)
+  const baseConfig = normalizeConfig({ storage: { maxBackups: 0 } })
+  const store = createConfigStore({ dir, baseConfig, now: () => ANCHOR })
+  const saved = store.save({ truncation: { maxDepth: 3 } })
+  assert.equal(saved.error, null)
+  assert.equal(existsSync(join(dir, 'config.json')), true)
+  assert.equal(saved.backupId, null)
+  assert.equal(existsSync(join(dir, 'backups')), false)
+  assert.equal(createConfigStore({ dir, baseConfig }).effective().truncation.maxDepth, 3)
+})
+
 test('config-store: maxBackups prunes old snapshots', () => {
   const dir = tempDir()
   const store = createConfigStore({ dir, baseConfig: normalizeConfig({}), now: () => ANCHOR })
@@ -269,4 +313,95 @@ test('config-audit: flags dangerous combinations and normalized values', () => {
   const clamps = clampWarnings({ truncation: { maxDepth: 99 }, unknownTop: { a: 1 } }, effective)
   assert.equal(clamps.some((warning) => warning.includes('truncation.maxDepth') && warning.includes('6')), true)
   assert.equal(clamps.some((warning) => warning.includes('unknownTop.a')), true)
+})
+
+// Minimal hook host: drive the registered panel through rendered controls.
+function panelHost(postBody) {
+  const slots = []
+  let cursor = 0
+  let effects = []
+  let panel
+  let client
+  let tree
+  let posted = false
+  const sameDeps = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]))
+  const React = {
+    createElement(type, props, ...children) {
+      return typeof type === 'function' ? type({ ...props, children }) : { type, props: props || {}, children: children.flat(Infinity) }
+    },
+    useState(initial) {
+      const i = cursor++
+      if (!slots[i]) slots[i] = { value: initial }
+      return [slots[i].value, (next) => { slots[i].value = typeof next === 'function' ? next(slots[i].value) : next }]
+    },
+    useRef(initial) {
+      const i = cursor++
+      return slots[i] ||= { current: initial }
+    },
+    useCallback(fn, deps) {
+      const i = cursor++
+      if (!sameDeps(slots[i]?.deps, deps)) slots[i] = { deps, fn }
+      return slots[i].fn
+    },
+    useEffect(fn, deps) {
+      const i = cursor++
+      if (!sameDeps(slots[i]?.deps, deps)) {
+        slots[i] = { deps }
+        effects.push(fn)
+      }
+    },
+  }
+  const tuning = () => ({ effective: { truncation: { maxDepth: posted ? 3 : 2 } }, meta: [
+    { path: 'truncation.maxDepth', label: '深度', kind: 'number', min: 1, max: 6 },
+  ] })
+  runInNewContext(readFileSync(new URL('../src/client.js', import.meta.url), 'utf8'), {
+    window: { __ModuleLoader__: { load: ({ factory }) => { client = factory(() => React) } } },
+    document: { getElementById: () => true },
+    AbortController, setTimeout: () => 1, clearTimeout() {}, setInterval: () => 1, clearInterval() {},
+    fetch: async (url, options) => {
+      if (options.method === 'POST') posted = true
+      return { ok: true, json: async () => options.method === 'POST' ? { ...tuning(), ...postBody } : url.includes('/tuning') ? tuning() : {} }
+    },
+  })
+  client.apply({
+    effect: (fn) => fn(),
+    locale: { register() {}, bind: () => () => '' },
+    slots: {
+      inject: (_slot, fn) => fn(),
+      register: (options, component) => { if (options.name === 'main') panel = component },
+    },
+  })
+  const nodes = (node) => node && typeof node === 'object' ? [node, ...node.children.flatMap(nodes)] : []
+  return {
+    async flush() {
+      for (let i = 0; i < 3; i += 1) {
+        cursor = 0
+        tree = panel()
+        const pending = effects
+        effects = []
+        pending.forEach((fn) => fn())
+        await new Promise((resolve) => setImmediate(resolve))
+      }
+    },
+    find: (predicate) => nodes(tree).find(predicate),
+    text: () => nodes(tree).flatMap((node) => node.children.filter((child) => typeof child === 'string')).join('\n'),
+  }
+}
+
+test('client: persistence failures retain drafts and only success clears them', async () => {
+  for (const response of [{ saved: false }, { persisted: false }, { error: 'disk full' }, { saved: true, error: null }]) {
+    const host = panelHost(response)
+    await host.flush()
+    host.find((node) => node.props.role === 'tab' && node.children[0].startsWith('精调')).props.onClick()
+    await host.flush()
+    host.find((node) => node.type === 'input' && node.props['aria-label'] === '深度').props.onChange({ target: { value: '3' } })
+    await host.flush()
+    host.find((node) => node.type === 'button' && node.children[0] === '保存').props.onClick()
+    await host.flush()
+    const failed = response.saved === false || response.persisted === false || !!response.error
+    assert.equal(!!host.find((node) => node.type === 'button' && node.children[0] === '保存'), failed)
+    assert.equal(host.find((node) => node.type === 'input').props.value, '3')
+    assert.match(host.text(), failed ? /操作失败/ : /已保存/)
+    if (failed) assert.doesNotMatch(host.text(), /已保存/)
+  }
 })

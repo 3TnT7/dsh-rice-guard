@@ -18,7 +18,7 @@
  *     生效配置；份数由 `storage.maxBackups` 控制（0=不备份）。
  *   - `storage.enabled=false` **不阻止精调存档本身写入**：否则「关掉落盘」这个
  *     动作无法持久，重启会自动开回来。它只停统计 JSONL 与自动备份。
- *   - 写入用「临时文件 + rename」原子替换：半截 JSON 会让下次启动直接丢配置。
+ *   - 存档自行递归创建目录，不依赖备份；写入用「临时文件 + rename」原子替换，避免半截 JSON。
  *
  * 已知边界
  *   - 没有跨进程文件锁；宿主单实例运行，面板写入不会并发（路由是单线程顺序处理）。
@@ -235,6 +235,7 @@ export function createConfigStore(options = {}) {
         note: clipNote(meta.note),
         config,
       }
+      mkdirSync(dir, { recursive: true })
       writeJsonAtomic(archivePath, payload)
       error = null
       return null

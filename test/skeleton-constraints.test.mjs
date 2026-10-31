@@ -1,7 +1,9 @@
 /**
  * 职责：验证 0.6.0 的「最小调用约束优先于预算」——skeleton / collapse 不再静默
- * 丢弃 `enum` / `items`（《007》§3.3）。
+ * 丢弃 `enum` / `items`（《007》§3.3），并验证锚点/资源/方言标识与元组尾部约束。
  * 依赖的 DSH 契约：无；纯函数 + 模块门面。
+ * 关键决策与依据：通过 slimParameters 的返回值验证语义；宽松预算隔离普通遍历
+ * 与 collapse，用 padding 强制 skeleton，避免一条路径的保留行为掩盖另一条缺陷。
  * 已知边界：只保证最小约束（类型 / enum 全集 / 一层元素结构）；`$ref`、组合分支、
  * 深层嵌套不做猜测式重写；复杂度换来的体积上限仍由「严格变小 + selfcheck」兜底。
  */
@@ -78,6 +80,68 @@ test('collapse 保留 >12 项的 enum 全集（旧实现只在 ≤12 时保留�
   const stub = result.parameters.properties.outer.properties.nested
   assert.equal(stub.type, 'string')
   assert.deepEqual(stub.enum, many)
+})
+
+test('collapse 保留对象数组元素的一层字段与 required', () => {
+  const input = root({
+    files: {
+      type: 'array',
+      description: '数组详细描述'.repeat(100),
+      items: {
+        type: 'object',
+        properties: { path: { type: 'string' }, content: { type: 'string' } },
+        required: ['path', 'content'],
+      },
+    },
+  })
+  // 深度 0 + 宽松预算：files 直接 collapse，不能靠 skeleton 补回字段。
+  const result = slimParameters(input, { ...TIGHT, maxSchemaChars: 5000 })
+  assert.ok(result)
+  assert.equal(result.collapsedNodes, 1)
+  assert.equal(result.parameters.properties.files.description, 'Nested fields omitted by rice-guard.')
+  assert.deepEqual(result.parameters.properties.files.items, {
+    type: 'object',
+    properties: { path: { type: 'string' }, content: { type: 'string' } },
+    required: ['path', 'content'],
+  })
+})
+
+test('宽松预算保留 $anchor、$id 与 $schema 的引用解析语义', () => {
+  const input = {
+    ...root({ a: { $ref: '#item' }, b: { $ref: 'other.json' } }),
+    additionalProperties: false,
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'https://example.com/schemas/root.json',
+    $defs: { item: { $anchor: 'item', type: 'string' } },
+    description: '根描述'.repeat(100),
+  }
+  const result = slimParameters(input, { ...TIGHT, maxSchemaChars: 5000, maxDepth: 3 })
+  assert.ok(result)
+  assert.equal(result.collapsedNodes, 0)
+  assert.equal(result.parameters.$defs.item.$anchor, 'item')
+  assert.equal(result.parameters.properties.a.$ref, '#item')
+  assert.equal(result.parameters.properties.b.$ref, 'other.json')
+  assert.equal(result.parameters.$id, input.$id)
+  assert.equal(result.parameters.$schema, input.$schema)
+})
+
+test('skeleton 同时保留 prefixItems 与 items 尾部约束', () => {
+  const input = root({
+    pair: {
+      type: 'array',
+      prefixItems: [{ type: 'string' }, { type: 'number' }],
+      items: false,
+    },
+  })
+  input['x-padding'] = '填充'.repeat(400)
+  const result = slimParameters(input, TIGHT)
+  assert.ok(result)
+  assert.equal(result.parameters['x-padding'], undefined) // 确认使用 skeleton。
+  assert.deepEqual(result.parameters.properties.pair, {
+    type: 'array',
+    prefixItems: [{ type: 'string' }, { type: 'number' }],
+    items: false,
+  })
 })
 
 test('skeleton 复原约束后超预算：显式标记 overBudget，而非删约束', () => {

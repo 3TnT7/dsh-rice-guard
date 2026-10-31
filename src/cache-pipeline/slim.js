@@ -12,11 +12,15 @@
  *
  * 关键决策与依据
  *   - 注解丢弃依据 JSON Schema 2020-12 的 annotation 概念：`title`、`examples`、
- *     `$comment`、`deprecated`、`readOnly`、`writeOnly`、`$schema`、`$id`、`$anchor`
- *     等不参与校验，删除不改变校验结果。`description` 也是注解，但单独截断而不是
- *     删除，因为它是模型可见信息。`default` 同为注解，但不在本模块的删除集合里——
- *     保持现状，不在本次改动范围内。
+ *     `deprecated`、`readOnly`、`writeOnly` 可删；`$comment` 是可丢弃的 core 注释，
+ *     不属于 annotation。`description` 单独截断，`default` 保持不删。
+ *   - `$anchor` / `$id` / `$schema` 不是注解，不进入删除集合：2020-12 Core
+ *     §8.2.2 定义锚点，§8.2.1 定义资源标识与相对 `$ref` 的解析基准，§8.1.1
+ *     用 `$schema` 声明方言/元 schema；删掉它们可能改变引用解析或关键字语义。
+ *     普通遍历原样保留；skeleton / collapse 的整块替换仍有下述引用边界。
  *   - `prefixItems` 永不截断：元组按位置约束参数，删尾部会丢掉第 N 个参数的类型。
+ *     skeleton 分别保留 `prefixItems` 与 `items`：2020-12 中后者约束前缀之外的元素，
+ *     两者可共存，不是互斥的数组表示。
  *   - 联合类型默认不截断（`truncateUnions: false`）：截分支省几十字节，却可能让
  *     模型按被删分支组织参数；打开时硬下限 2（《整合实现方案》§6.2）。
  *   - `required` 修剪到仍存在于 `properties` 的名字：坍缩/删键后若不修剪，schema
@@ -30,7 +34,8 @@
  *     路径不再静默丢 `enum` / `items`，而是保留最小约束；代价是候选可能超
  *     `maxSchemaChars`（该值本来就不是硬上限，见《007》§3.1），最坏由「严格变小」
  *     检查退回原 schema。依据：`enum` 被删会让模型发明非法取值，`items` 被删会让
- *     字符串数组/对象数组填错（《007》§3.3）。
+ *     字符串数组/对象数组填错（《007》§3.3）。两条路径都给数组元素保留一层
+ *     对象字段与 `required`，collapse 仍不恢复被坍缩对象自身的字段。
  *   - 行为与默认值源自 dsh-cache-saver（MIT,
  *     Copyright (c) 2026 dsh-cache-saver contributors；
  *     https://github.com/ium9khbep8834-maker/dsh-cache-saver）。
@@ -66,7 +71,7 @@ export const SLIM_RULE_DEFAULTS = Object.freeze({
 })
 
 /**
- * 纯注解关键字。按 JSON Schema 2020-12，它们不参与校验，删了不改变校验结果；
+ * 可丢弃的注解与注释：`$comment` 属 core 注释，不是 annotation。
  * `example`（单数）不是标准关键字，但旧插件也删，保持一致。
  * `description` 单独截断（不在本集合）；`default` 不在删除集合里（见文件头）。
  */
@@ -77,9 +82,6 @@ const ANNOTATION_KEYS = new Set([
   'deprecated',
   'readOnly',
   'writeOnly',
-  '$schema',
-  '$id',
-  '$anchor',
   'title',
 ])
 
@@ -303,8 +305,9 @@ function minimalConstraint(node, depth, stats, seen = new Set()) {
         setKey(out, 'items', items)
         stats.itemsKept += 1
       }
-    } else if (Array.isArray(node.prefixItems) && node.prefixItems.length > 0 && depth > 0) {
-      // 元组按位置约束：保序保留每个位置的最小类型，不截尾（§6.2）。
+    }
+    if (Array.isArray(node.prefixItems) && node.prefixItems.length > 0 && depth > 0) {
+      // 与 items 独立：prefixItems 约束前缀，items 约束剩余元素；保序不截尾（§6.2）。
       setKey(out, 'prefixItems', node.prefixItems.map((entry) => minimalConstraint(entry, 0, stats, seen) ?? {}))
       stats.itemsKept += 1
     }
@@ -459,8 +462,8 @@ function collapse(node, settings, stats) {
       : ''
   out.description = description === '' ? 'Nested fields omitted by rice-guard.' : `${description} (nested fields omitted)`
 
-  // 最小调用约束：本节点的 enum 与 items 元素类型/枚举。深度 0 = 不再展开字段。
-  const minimal = minimalConstraint(node, 0, stats)
+  // 两层预算：items 元素再保留一层对象字段与 required；不复制本节点的 properties。
+  const minimal = minimalConstraint(node, 2, stats)
   if (isPlainObject(minimal)) {
     if (minimal.enum !== undefined) out.enum = minimal.enum
     if (minimal.items !== undefined) out.items = minimal.items
