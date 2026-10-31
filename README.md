@@ -2,7 +2,7 @@
 
 让 DeepSeek Harness 每次请求少发一点工具定义，让前缀缓存命中更稳一点。
 
-> 安装：`dsh plugin add dsh-rice-guard`（DSH 从 npm 拉取；装完重启 DSH）
+> 安装：`dsh plugin add github:3TnT7/dsh-rice-guard`（直接装 GitHub 源码，DSH 从仓库拉取；装完重启 DSH）
 
 ## 它是什么
 
@@ -41,10 +41,10 @@
 
 ## 安装
 
-包发布在 npm（包名 `dsh-rice-guard`），DSH 从 npm 拉取安装：
+包在 GitHub 上（`github:3TnT7/dsh-rice-guard`），DSH 的插件管理器支持 git 地址，直接从仓库拉取安装：
 
 ```sh
-dsh plugin add dsh-rice-guard
+dsh plugin add github:3TnT7/dsh-rice-guard
 ```
 
 装完重启 DSH；面板需要 web profile，本地开发可用 `dsh plugin add link:<本地路径>` 装工作副本。

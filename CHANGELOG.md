@@ -13,6 +13,7 @@ All notable changes to this project are documented here.
 ### Changed
 - Verified the `system-prompt/assemble` and `session/event` contracts against DSH `0.2.1-rc.5` (same signatures and payload as rc.2/rc.3).
 - Docs: NOTICE notes the generalized `mcp__` default prefix; hooks, truncate and config-store comments now match the code.
+- Install: README documents the GitHub install (`dsh plugin add github:3TnT7/dsh-rice-guard`); npm publishing stopped.
 
 ## [0.8.6] - 2026-10-26
 
