@@ -18,8 +18,8 @@
  *   - `assertHookSpec` 在注册前校验形状，坏 spec 不落进 `ctx.on`。
  *
  * 已知边界
- *   - `never-throw` 分支目前没有调用方（留给 spend-guard / loop-breaker），
- *     语义先固定下来，避免后来者各写一套。
+ *   - `never-throw` 由 `session/event` 用量旁路（`src/usage.js`）使用；
+ *     spend-guard / loop-breaker 若接入也复用它，避免后来者各写一套。
  *   - 本文件不负责计数：handler 自己的失败由 handler 记账（`failed` 字段），
  *     这里只做「逃出 containment」的最后一条日志。
  *   - 不提供卸载 API：生命周期由宿主 fiber 管理。

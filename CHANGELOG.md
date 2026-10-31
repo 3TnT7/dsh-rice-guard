@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Fixed
+- `slim`: stop dropping object-element `properties`/`required` in collapse; keep `items` and `prefixItems` independently so valid tuples no longer collapse to empty-only arrays; stop treating `$anchor`/`$id`/`$schema` as annotations, which left dangling `$ref`s.
+- `stats-store`: terminate an unterminated tail line before appending, so an interrupted write no longer corrupts the next record.
+- `config-store`: create the store directory on first save instead of relying on the backup path (`maxBackups: 0` now persists).
+- `client`: report a failed write and keep the draft instead of claiming the save succeeded.
+
+### Changed
+- Verified the `system-prompt/assemble` and `session/event` contracts against DSH `0.2.1-rc.5` (same signatures and payload as rc.2/rc.3).
+- Docs: NOTICE notes the generalized `mcp__` default prefix; hooks, truncate and config-store comments now match the code.
+
 ## [0.8.6] - 2026-10-26
 
 ### Changed
