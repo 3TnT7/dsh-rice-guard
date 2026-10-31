@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.8.7] - 2026-10-31
 
 ### Fixed
 - `slim`: stop dropping object-element `properties`/`required` in collapse; keep `items` and `prefixItems` independently so valid tuples no longer collapse to empty-only arrays; stop treating `$anchor`/`$id`/`$schema` as annotations, which left dangling `$ref`s.
